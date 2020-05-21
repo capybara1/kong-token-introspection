@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v5
+      - name: Install LuaRocks
+        uses: leafo/gh-actions-luarocks@v2
+      - name: Create Rock
+        run: luarocks make --pack-binary-rock
+      - name: Get Time
+        id: time
+        uses: nanzm/get-time-action@v1.0
+        with:
+          timeZone: 0
+          format: 'YYYY-MM-DD-HH-mm-ss'
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.time.outputs.time }}
+          release_name: Release ${{ steps.time.outputs.time }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload_release_asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./access-token-introspection-1.0.0-0.all.rock
+          asset_name: access-token-introspection-1.0.0-0.all.rock
+          asset_content_type: application/zip

@@ -60,7 +60,6 @@ function _M.is_scope_authorized(scope)
     if string.len(needed_scope) == 0 then
         return true
     end
-    scope = table.concat(scope, " ")
     scope = pl_stringx.strip(scope)
     if string.find(scope, '*', 1, true) or string.find(scope, needed_scope, 1, true) then
         return true
